@@ -12,6 +12,8 @@ class CategoryAdmin(DraggableMPTTAdmin):
 
 class StockInline(admin.TabularInline):
     model = StockModel
+    fields = ('shop', 'latest_update', 'price', 'quantity')
+    readonly_fields = ('latest_update',)
     extra = 0
 
 
@@ -25,7 +27,7 @@ class ShopAdmin(admin.ModelAdmin):
 
 # Переопределяем ширину поля ввода для поля name
 class ProductFormsAdmin(ModelForm):
-    name = CharField(widget=TextInput(attrs={'style': 'width: 100%;'}))
+    name = CharField(label='Название', widget=TextInput(attrs={'style': 'width: 100%;'}))
     
     class Meta:
         model = ProductModel

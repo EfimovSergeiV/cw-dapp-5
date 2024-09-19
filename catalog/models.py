@@ -23,9 +23,7 @@ class ProductModel(models.Model):
 
 
 class ShopModel(models.Model):
-    """
-        Магазины
-    """
+    """ Магазины """
 
     uuid = models.UUIDField(verbose_name="Идентификатор", primary_key=True, default=uuid.uuid4, unique=True, editable=False)
     city = models.CharField(verbose_name="Город", max_length=100, null=True, blank=True)
@@ -43,15 +41,18 @@ class ShopModel(models.Model):
 
 
 class StockModel(models.Model):
-    """
-        Наличие, остаток товаров и стоимость
-    """
+    """ Наличие, остаток товаров и стоимость """
+   
     shop = models.ForeignKey(ShopModel, verbose_name="Магазин", related_name="shop_uuid", on_delete=models.CASCADE)
     product = models.ForeignKey(ProductModel, verbose_name="Товар", related_name="product_uuid", on_delete=models.CASCADE)
 
     price = models.PositiveIntegerField(verbose_name="Стоимость", null=True, blank=True)
     quantity = models.PositiveIntegerField(verbose_name="Количество", null=True, blank=True)
     latest_update = models.DateTimeField(verbose_name="Последнее обновление", auto_now=True)
+
+    class Meta:
+        verbose_name = "Остаток товара"
+        verbose_name_plural = "Остатки товаров"
 
     def __str__(self):
         return self.product.name
@@ -82,24 +83,12 @@ class ProductsTableModel(models.Model):
     def save(self, *args, **kwargs):
         super(ProductsTableModel, self).save(*args, **kwargs)
 
-        # Выводим сохраняемй QS
-        print(f"Сохраняемый QS: {type(self.shop)} {self.shop}")
-
         prods_qs = ProductModel.objects.all()
-
-
         stock_qs = StockModel.objects.all()
-
-
-
-        prods_updated = []
-
-        
 
         df = pd.read_excel(f'{self.file.path}', sheet_name='TDSheet', header=None, index_col=0)
         for index, row in df.iterrows():
 
-            # Обновляем или создаём товар
             price = row[12] if type(row[12]) == int else None
             quantity = row[13] if type(row[13]) == int else None
 
@@ -121,13 +110,6 @@ class ProductsTableModel(models.Model):
                         quantity = quantity,
                     )
 
-                #     prod.update(
-                #         price=price,
-                #         quantity=quantity,
-                #         last_update=timezone.now()
-                #     )
-                #     prods_updated.append(prod[0].id)
-
                 elif prod.exists() and len(prod) > 1:
                     # дополнительный фильтр на полное совпадение
 
@@ -140,14 +122,11 @@ class ProductsTableModel(models.Model):
                         quantity = quantity,
                     )
 
-
-                    print(f"Обновлено при условии: {prod}")
-                    sleep(3)
-
-                else:
-                    prod_qs = prods_qs.create(
-                        name=str(index).replace("  ", ""),
-                    )
+                # else:
+                #     # СПОРНОЕ: ПЕРЕПРОВЕРИТЬ
+                #     prod_qs = prods_qs.create(
+                #         name=str(index).replace("  ", ""),
+                #     )
 
                 #     prods_updated.append(stat.id)
 
