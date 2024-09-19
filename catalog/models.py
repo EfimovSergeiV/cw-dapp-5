@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.utils import timezone
 from django_resized import ResizedImageField
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -10,7 +11,7 @@ class ProductModel(models.Model):
         Заносятся при парсинге
     """
     uuid = models.UUIDField(verbose_name="Идентификатор", primary_key=True, default=uuid.uuid4, unique=True, editable=False)
-    name = models.CharField(verbose_name="Название", max_length=100)
+    name = models.CharField(verbose_name="Название", unique=True, max_length=100)
 
     class Meta:
         verbose_name = "Товар"
@@ -19,7 +20,6 @@ class ProductModel(models.Model):
 
     def __str__(self):
         return self.name
-
 
 
 class ShopModel(models.Model):
@@ -38,8 +38,8 @@ class ShopModel(models.Model):
         ordering = ['-city',]
 
     def __str__(self):
-        return f'{self.city} {self.adress}'
-    
+        return f'{self.city}, {self.adress}'
+
 
 
 class StockModel(models.Model):
@@ -48,13 +48,114 @@ class StockModel(models.Model):
     """
     shop = models.ForeignKey(ShopModel, verbose_name="Магазин", related_name="shop_uuid", on_delete=models.CASCADE)
     product = models.ForeignKey(ProductModel, verbose_name="Товар", related_name="product_uuid", on_delete=models.CASCADE)
-    
+
     price = models.PositiveIntegerField(verbose_name="Стоимость", null=True, blank=True)
     quantity = models.PositiveIntegerField(verbose_name="Количество", null=True, blank=True)
     latest_update = models.DateTimeField(verbose_name="Последнее обновление", auto_now=True)
 
     def __str__(self):
         return self.product.name
+    
+
+
+
+import pandas as pd
+from django.db.models import Q
+
+from time import sleep
+
+class ProductsTableModel(models.Model):
+    """ Таблица c товарами, которые есть в наличии """
+
+    shop = models.ForeignKey(ShopModel, related_name="shops_xls", on_delete=models.SET_NULL, null=True, blank=True)
+    created_date = models.DateField(verbose_name="Дата выгрузки", auto_now=True)
+    file = models.FileField(verbose_name="Файл xls", upload_to='c/import-1c/')
+
+    class Meta:
+        verbose_name = "XLS Таблица товаров"
+        verbose_name_plural = "3. XLS Таблицы товаров"
+    
+    def __str__(self):
+        return f'{ self.shop }, Выгружен: { self.created_date }'
+    
+
+    def save(self, *args, **kwargs):
+        super(ProductsTableModel, self).save(*args, **kwargs)
+
+        # Выводим сохраняемй QS
+        print(f"Сохраняемый QS: {type(self.shop)} {self.shop}")
+
+        prods_qs = ProductModel.objects.all()
+
+
+        stock_qs = StockModel.objects.all()
+
+
+
+        prods_updated = []
+
+        
+
+        df = pd.read_excel(f'{self.file.path}', sheet_name='TDSheet', header=None, index_col=0)
+        for index, row in df.iterrows():
+
+            # Обновляем или создаём товар
+            price = row[12] if type(row[12]) == int else None
+            quantity = row[13] if type(row[13]) == int else None
+
+            if price and quantity:
+                print(f"{ index }, { price } руб, { quantity } шт.")
+
+                tokens = str(index).replace("  ", "").split()
+                conditions = Q()
+                for token in tokens:
+                    conditions &= Q(name__icontains=token)
+
+                prod = prods_qs.filter(conditions)
+
+                if prod.exists() and len(prod) == 1:
+                    stock_qs.update_or_create(
+                        shop = self.shop,
+                        product = prod[0],
+                        price = price,
+                        quantity = quantity,
+                    )
+
+                #     prod.update(
+                #         price=price,
+                #         quantity=quantity,
+                #         last_update=timezone.now()
+                #     )
+                #     prods_updated.append(prod[0].id)
+
+                elif prod.exists() and len(prod) > 1:
+                    # дополнительный фильтр на полное совпадение
+
+                    prod = prod.filter(name=str(index).replace("  ", ""))
+
+                    stock_qs.update_or_create(
+                        shop = self.shop,
+                        product = prod[0],
+                        price = price,
+                        quantity = quantity,
+                    )
+
+
+                    print(f"Обновлено при условии: {prod}")
+                    sleep(3)
+
+                else:
+                    prod_qs = prods_qs.create(
+                        name=str(index).replace("  ", ""),
+                    )
+
+                #     prods_updated.append(stat.id)
+
+                
+        # Удаляем товары которых нет в обновлённых или созданных
+        # objects_to_delete = prods_qs.exclude(id__in=prods_updated)
+        # objects_to_delete.delete()
+
 
 
 
@@ -85,7 +186,7 @@ class CategoryModel(MPTTModel):
 
     class Meta:
         verbose_name = "Категория"
-        verbose_name_plural = "3. Категории"
+        verbose_name_plural = "4. Категории"
         
     class MPTTMeta:
         order_insertion_by = ['name',]
@@ -119,7 +220,7 @@ class ProductCardModel(models.Model):
 
     class Meta:
         verbose_name = "Карточка товара"
-        verbose_name_plural = "4. Карточки товаров"
+        verbose_name_plural = "5. Карточки товаров"
         ordering = ['name',]
 
     def __str__(self):
