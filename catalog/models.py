@@ -15,7 +15,7 @@ class ProductModel(models.Model):
 
     class Meta:
         verbose_name = "Товар"
-        verbose_name_plural = "2. Товары"
+        verbose_name_plural = "1.2 Товары"
         ordering = ['name',]
 
     def __str__(self):
@@ -32,7 +32,7 @@ class ShopModel(models.Model):
 
     class Meta:
         verbose_name = "Магазин"
-        verbose_name_plural = "1. Магазины"
+        verbose_name_plural = "1.1 Магазины"
         ordering = ['-city',]
 
     def __str__(self):
@@ -74,7 +74,7 @@ class ProductsTableModel(models.Model):
 
     class Meta:
         verbose_name = "XLS Таблица товаров"
-        verbose_name_plural = "3. XLS Таблицы товаров"
+        verbose_name_plural = "1.3 XLS Таблицы товаров"
     
     def __str__(self):
         return f'{ self.shop }, Выгружен: { self.created_date }'
@@ -95,7 +95,7 @@ class ProductsTableModel(models.Model):
             if price and quantity:
                 print(f"{ index }, { price } руб, { quantity } шт.")
 
-                tokens = str(index).replace("  ", "").split()
+                tokens = str(index).split()
                 conditions = Q()
                 for token in tokens:
                     conditions &= Q(name__icontains=token)
@@ -113,7 +113,7 @@ class ProductsTableModel(models.Model):
                 elif prod.exists() and len(prod) > 1:
                     # дополнительный фильтр на полное совпадение
 
-                    prod = prod.filter(name=str(index).replace("  ", ""))
+                    prod = prod.filter(name=str(index))
 
                     stock_qs.update_or_create(
                         shop = self.shop,
@@ -125,7 +125,7 @@ class ProductsTableModel(models.Model):
                 # else:
                 #     # СПОРНОЕ: ПЕРЕПРОВЕРИТЬ
                 #     prod_qs = prods_qs.create(
-                #         name=str(index).replace("  ", ""),
+                #         name=str(index),
                 #     )
 
                 #     prods_updated.append(stat.id)
@@ -165,7 +165,7 @@ class CategoryModel(MPTTModel):
 
     class Meta:
         verbose_name = "Категория"
-        verbose_name_plural = "4. Категории"
+        verbose_name_plural = "1.4 Категории"
         
     class MPTTMeta:
         order_insertion_by = ['name',]
@@ -199,7 +199,7 @@ class ProductCardModel(models.Model):
 
     class Meta:
         verbose_name = "Карточка товара"
-        verbose_name_plural = "5. Карточки товаров"
+        verbose_name_plural = "1.5 Карточки товаров"
         ordering = ['name',]
 
     def __str__(self):
