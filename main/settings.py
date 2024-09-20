@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'catalog.apps.CatalogConfig',
     'mptt',
+    'django_ckeditor_5',
 ]
 
 MIDDLEWARE = [
@@ -123,3 +124,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 MPTT_ADMIN_LEVEL_INDENT = 40
+
+
+# CKEditor 5
+# https://pypi.org/project/django-ckeditor-5/
+
+CKEDITOR_5_CONFIGS = {
+'default': {
+    'toolbar': ['heading', '|', 'bold', 'italic', 'link',
+                'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', ],
+
+    },
+}

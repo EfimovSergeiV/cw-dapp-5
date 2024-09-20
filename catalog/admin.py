@@ -2,7 +2,7 @@ from django.contrib import admin
 from catalog.models import *
 from django.forms import ModelForm, TextInput, CharField
 from mptt.admin import DraggableMPTTAdmin
-
+from django_ckeditor_5.widgets import CKEditor5Widget
 
 
 class CategoryAdmin(DraggableMPTTAdmin):
@@ -80,10 +80,39 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 
+
+# Переопределяем ширину поля ввода для поля name
+class ProductCardFormsAdmin(ModelForm):
+    keywords_hepl = "* Отвечает за сопастовление карточек товаров с товарами"
+
+    name = CharField(label='Название', widget=TextInput(attrs={'style': 'width: 100%;'}))
+    keywords = CharField(label='Ключевые слова', help_text=keywords_hepl, widget=TextInput(attrs={'style': 'width: 100%;'}))
+    description = CharField(label="Описание", widget=CKEditor5Widget(attrs={"class": "django_ckeditor_5"},))
+
+    class Meta:
+        model = ProductModel
+        fields = '__all__'
+
+
+class ProductCardAdmin(admin.ModelAdmin):
+    """ Админка для карточек товаров """
+    form = ProductCardFormsAdmin
+
+    list_display = ('id', 'name',)
+    list_display_links = ('id', 'name',)
+    readonly_fields = ('id',)
+    
+    fieldsets = (
+        ('', {'fields': (('id','price',),('name',),('keywords',),)}),
+        ('', {'fields': (('category',),)}),
+        ('', {'fields': ((),)}),
+        ('', {'fields': (('preview',),('description'))}),
+    )
+
+
+
 admin.site.register(CategoryModel, CategoryAdmin)
 admin.site.register(ProductModel, ProductAdmin)
 admin.site.register(ShopModel, ShopAdmin)
-
 admin.site.register(ProductsTableModel)
-
-admin.site.register(ProductCardModel)
+admin.site.register(ProductCardModel, ProductCardAdmin)

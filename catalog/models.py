@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django_resized import ResizedImageField
 from mptt.models import MPTTModel, TreeForeignKey
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class ProductModel(models.Model):
@@ -122,13 +123,18 @@ class ProductsTableModel(models.Model):
                         quantity = quantity,
                     )
 
-                # else:
-                #     # СПОРНОЕ: ПЕРЕПРОВЕРИТЬ
-                #     prod_qs = prods_qs.create(
-                #         name=str(index),
-                #     )
+                else:
+                    # СПОРНОЕ: ПЕРЕПРОВЕРИТЬ
+                    prod_qs = prods_qs.create(
+                        name=str(index),
+                    )
 
-                #     prods_updated.append(stat.id)
+                    stock_qs.update_or_create(
+                        shop = self.shop,
+                        product = prod_qs,
+                        price = price,
+                        quantity = quantity,
+                    )
 
                 
         # Удаляем товары которых нет в обновлённых или созданных
@@ -184,8 +190,8 @@ class ProductCardModel(models.Model):
     keywords = models.CharField(verbose_name="Ключевые слова", max_length=100, null=True, blank=True)
     price = models.PositiveIntegerField(verbose_name="Стоимость", null=True, blank=True)
     category = models.ForeignKey(CategoryModel, verbose_name="Категория", on_delete=models.SET_NULL, null=True, blank=True)
-    product_uuid = models.UUIDField(verbose_name="Идентификатор товара", null=True, blank=True)
-    description = models.TextField(verbose_name="Описание", null=True, blank=True)
+
+    description = CKEditor5Field(verbose_name="Описание", null=True, blank=True)
     preview = ResizedImageField(
         size = [235, 177],
         verbose_name="",
@@ -203,4 +209,4 @@ class ProductCardModel(models.Model):
         ordering = ['name',]
 
     def __str__(self):
-        return self.product.name
+        return self.name
