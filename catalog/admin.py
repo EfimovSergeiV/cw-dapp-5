@@ -1,5 +1,6 @@
 from django.contrib import admin
 from catalog.models import *
+from django.utils.safestring import mark_safe
 from django.forms import ModelForm, TextInput, CharField
 from mptt.admin import DraggableMPTTAdmin
 from django_ckeditor_5.widgets import CKEditor5Widget
@@ -79,8 +80,6 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 
-
-
 # Переопределяем ширину поля ввода для поля name
 class ProductCardFormsAdmin(ModelForm):
     keywords_hepl = "* Отвечает за сопастовление карточек товаров с товарами"
@@ -94,19 +93,43 @@ class ProductCardFormsAdmin(ModelForm):
         fields = '__all__'
 
 
+class ProductImagesAdmin(admin.TabularInline):
+    """ Изображения товара """
+    model = ProductImagesModel
+    readonly_fields = ('show_img', )
+    extra = 0
+
+    def show_img(self, obj):
+        url_img = obj.image if obj.image else 'img/c/preview/noimage.webp'
+        return mark_safe('<img style="margin-right:-10vh; background-color: white; padding: 15px; border-radius: 5px;" src="/files/%s" alt="Нет изображения" width="120" height="auto" />' % (url_img))
+
+    show_img.short_description = 'Изображение'
+    fieldsets = (
+        (None, {'fields': ('show_img', 'image')}),
+        )
+
+
 class ProductCardAdmin(admin.ModelAdmin):
     """ Админка для карточек товаров """
     form = ProductCardFormsAdmin
 
+    def show_img(self, obj):
+        url_img = obj.image if obj.image else 'img/c/preview/noimage.webp'
+        return mark_safe('<img style="margin-right:-10vh; background-color: white; padding: 15px; border-radius: 5px;" src="/files/%s" alt="Нет изображения" width="120" height="auto" />' % (url_img))
+    show_img.short_description = 'Изображение'
+    
     list_display = ('id', 'name',)
     list_display_links = ('id', 'name',)
-    readonly_fields = ('id',)
-    
+    readonly_fields = ('id', 'show_img',)
+    inlines = [
+        ProductImagesAdmin,
+    ]
+
     fieldsets = (
         ('', {'fields': (('id','price',),('name',),('keywords',),)}),
         ('', {'fields': (('category',),)}),
         ('', {'fields': ((),)}),
-        ('', {'fields': (('preview',),('description'))}),
+        ('', {'fields': (('show_img', 'preview',),('description'))}),
     )
 
 

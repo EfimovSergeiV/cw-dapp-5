@@ -105,7 +105,6 @@ class ProductsTableModel(models.Model):
             quantity = row[13] if type(row[13]) == int else None
 
             if price and quantity:
-
                 tokens = str(index).split()
                 conditions = Q()
                 for token in tokens:
@@ -131,15 +130,9 @@ class CategoryModel(MPTTModel):
     """ Категории карточек товаров """
    
     image = ResizedImageField(
-        size = [120, 85],
-        verbose_name="",
-        crop = ['middle', 'center'],
-        upload_to='img/c/preview/',
+        size = [120, 85], verbose_name="", crop = ['middle', 'center'],
         help_text="Миниатира категории, только первого уровня (120x85 px)",
-        quality=100,
-        null=True,
-        blank=True,
-        force_format='WEBP',
+        quality=100, null=True, blank=True, force_format='WEBP', upload_to='img/c/preview/',
     )
     name = models.CharField(verbose_name="Название", max_length=100)
     parent = TreeForeignKey('self', verbose_name="Вложенность", on_delete=models.CASCADE, null=True, blank=True, related_name='children')
@@ -166,14 +159,10 @@ class ProductCardModel(models.Model):
     category = models.ForeignKey(CategoryModel, verbose_name="Категория", on_delete=models.SET_NULL, null=True, blank=True)
     description = CKEditor5Field(verbose_name="Описание", null=True, blank=True)
     preview = ResizedImageField(
-        size = [235, 177],
-        verbose_name="",
-        crop = ['middle', 'center'],
-        upload_to='img/c/preview/',
+        size = [235, 177], verbose_name="", crop = ['middle', 'center'],       
         help_text="Миниатира товара (235x177 px)",
-        quality=100,
-        default='img/c/preview/noimage.webp',
-        force_format='WEBP',
+        default='img/c/preview/noimage.webp', quality=100,
+        force_format='WEBP', upload_to='img/c/preview/',
     )
 
     class Meta:
@@ -183,3 +172,21 @@ class ProductCardModel(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class ProductImagesModel(models.Model):
+    """ Изображения к карточке товара """
+
+    product = models.ForeignKey(ProductCardModel, verbose_name="Карточка товара", related_name="prod_img", on_delete=models.CASCADE)
+    image = ResizedImageField(
+        size = [640, 480], verbose_name="", crop = ['middle', 'center'],
+        help_text="Изображение товара (640x480 px)",
+        quality=100, force_format='WEBP', upload_to='img/c/product/',
+    )
+
+    class Meta:
+        verbose_name = "Изображение"
+        verbose_name_plural = "Изображения"
+
+    def __str__(self):
+        return self.product.name
