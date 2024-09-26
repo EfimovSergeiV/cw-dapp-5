@@ -40,7 +40,6 @@ class ShopModel(models.Model):
         return f'{self.city}, {self.adress}'
 
 
-
 class StockModel(models.Model):
     """ Наличие, остаток товаров и стоимость """
    
@@ -57,14 +56,10 @@ class StockModel(models.Model):
 
     def __str__(self):
         return self.product.name
-    
-
 
 
 import pandas as pd
 from django.db.models import Q
-
-from time import sleep
 
 class ProductsTableModel(models.Model):
     """ Таблица c товарами, которые есть в наличии """
@@ -76,10 +71,10 @@ class ProductsTableModel(models.Model):
     class Meta:
         verbose_name = "XLS Таблица товаров"
         verbose_name_plural = "1.3 XLS Таблицы товаров"
-    
+
     def __str__(self):
         return f'{ self.shop }, Выгружен: { self.created_date }'
-    
+
 
     def save(self, *args, **kwargs):
         super(ProductsTableModel, self).save(*args, **kwargs)
@@ -94,65 +89,31 @@ class ProductsTableModel(models.Model):
             quantity = row[13] if type(row[13]) == int else None
 
             if price and quantity:
-                print(f"{ index }, { price } руб, { quantity } шт.")
 
                 tokens = str(index).split()
                 conditions = Q()
                 for token in tokens:
                     conditions &= Q(name__icontains=token)
 
-                prod = prods_qs.filter(conditions)
+                prod = prods_qs.filter(conditions).first()
+                prod = prod = prods_qs.create(name=str(index),) if not prod else prod
 
-                if prod.exists() and len(prod) == 1:
-                    stock_qs.update_or_create(
-                        shop = self.shop,
-                        product = prod[0],
-                        price = price,
-                        quantity = quantity,
-                    )
-
-                elif prod.exists() and len(prod) > 1:
-                    # дополнительный фильтр на полное совпадение
-
-                    prod = prod.filter(name=str(index))
-
-                    stock_qs.update_or_create(
-                        shop = self.shop,
-                        product = prod[0],
-                        price = price,
-                        quantity = quantity,
-                    )
-
-                else:
-                    # СПОРНОЕ: ПЕРЕПРОВЕРИТЬ
-                    prod_qs = prods_qs.create(
-                        name=str(index),
-                    )
-
-                    stock_qs.update_or_create(
-                        shop = self.shop,
-                        product = prod_qs,
-                        price = price,
-                        quantity = quantity,
-                    )
-
-                
-        # Удаляем товары которых нет в обновлённых или созданных
-        # objects_to_delete = prods_qs.exclude(id__in=prods_updated)
-        # objects_to_delete.delete()
+                stock_qs.update_or_create(
+                    shop = self.shop,
+                    product = prod,
+                    defaults = {
+                        "price": price,
+                        "quantity": quantity,
+                    }
+                )
 
 
 
-
-"""
-    Карточки товаров могут существовать независимо от товаров
-
-"""
+""" Карточки товаров могут существовать независимо от товаров """
 
 class CategoryModel(MPTTModel):
-    """ 
-        Категории карточек товаров
-    """
+    """ Категории карточек товаров """
+   
     image = ResizedImageField(
         size = [120, 85],
         verbose_name="",
@@ -180,17 +141,13 @@ class CategoryModel(MPTTModel):
         return str(self.id) + '. ' + self.name
 
 
-
 class ProductCardModel(models.Model):
-    """
-        Карточка товара
-    """
+    """ Карточка товара """
 
     name = models.CharField(verbose_name="Название", max_length=100)
     keywords = models.CharField(verbose_name="Ключевые слова", max_length=100, null=True, blank=True)
     price = models.PositiveIntegerField(verbose_name="Стоимость", null=True, blank=True)
     category = models.ForeignKey(CategoryModel, verbose_name="Категория", on_delete=models.SET_NULL, null=True, blank=True)
-
     description = CKEditor5Field(verbose_name="Описание", null=True, blank=True)
     preview = ResizedImageField(
         size = [235, 177],
