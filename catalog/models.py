@@ -6,6 +6,39 @@ from mptt.models import MPTTModel, TreeForeignKey
 from django_ckeditor_5.fields import CKEditor5Field
 
 
+
+class ShopModel(models.Model):
+    """ Магазины """
+
+    uuid = models.UUIDField(verbose_name="Идентификатор", primary_key=True, default=uuid.uuid4, unique=True, editable=False)
+    position = models.PositiveIntegerField(verbose_name="Позиция в списке", default=0)
+
+    region_code = models.CharField(verbose_name="Код региона", default='PSK', max_length=3)
+    city = models.CharField(verbose_name="Город", max_length=100, null=True, blank=True)
+    adress = models.CharField(verbose_name="Адрес", max_length=100, null=True, blank=True)
+    geo = models.CharField(verbose_name="Координаты", max_length=20, null=True, blank=True)
+    google_maps = models.URLField(verbose_name="Google Maps", null=True, blank=True)
+    yandex_maps = models.URLField(verbose_name="Yandex Maps", null=True, blank=True)
+
+    phone = models.CharField(verbose_name="Телефон", max_length=20, null=True, blank=True)
+    mobile = models.CharField(verbose_name="Моб.телефон", max_length=20, null=True, blank=True)
+
+    telegram = models.CharField(verbose_name="Телеграмм", max_length=100, null=True, blank=True)
+    whatsapp = models.CharField(verbose_name="WhatsApp", max_length=100, null=True, blank=True)
+    viber = models.CharField(verbose_name="Viber", max_length=100, null=True, blank=True)
+
+    wday = models.CharField(verbose_name="График по будням", null=True, blank=True, max_length=60)
+    wend = models.CharField(verbose_name="График по выходным", null=True, blank=True, max_length=60)
+
+    class Meta:
+        verbose_name = "Магазин"
+        verbose_name_plural = "1.1 Магазины"
+        ordering = ['position', '-city',]
+
+    def __str__(self):
+        return f'{self.city}, {self.adress}'
+
+
 class ProductModel(models.Model):
     """
         Товары каталога, которые есть в наличии.
@@ -21,23 +54,6 @@ class ProductModel(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class ShopModel(models.Model):
-    """ Магазины """
-
-    uuid = models.UUIDField(verbose_name="Идентификатор", primary_key=True, default=uuid.uuid4, unique=True, editable=False)
-    city = models.CharField(verbose_name="Город", max_length=100, null=True, blank=True)
-    adress = models.CharField(verbose_name="Адрес", max_length=100, null=True, blank=True)
-    geo = models.CharField(verbose_name="Координаты", max_length=20, null=True, blank=True)
-
-    class Meta:
-        verbose_name = "Магазин"
-        verbose_name_plural = "1.1 Магазины"
-        ordering = ['-city',]
-
-    def __str__(self):
-        return f'{self.city}, {self.adress}'
 
 
 class StockModel(models.Model):
