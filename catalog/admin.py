@@ -126,8 +126,8 @@ class ProductCardAdmin(admin.ModelAdmin):
     ]
 
     fieldsets = (
-        ('', {'fields': (('id','price',),('name',),('keywords',),)}),
-        ('', {'fields': (('category',),)}),
+        ('', {'fields': ((), ('name',), ('keywords',),)}),
+        ('', {'fields': (('id', 'price', 'category',),)}),
         ('', {'fields': ((),)}),
         ('', {'fields': (('show_img', 'preview',),('description'))}),
     )
