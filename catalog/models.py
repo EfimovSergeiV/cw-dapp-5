@@ -32,7 +32,7 @@ class ShopModel(models.Model):
 
     class Meta:
         verbose_name = "Магазин"
-        verbose_name_plural = "1.1 Магазины"
+        verbose_name_plural = "(1.1) Магазины"
         ordering = ['position', '-city',]
 
     def __str__(self):
@@ -49,7 +49,7 @@ class ProductModel(models.Model):
 
     class Meta:
         verbose_name = "Товар"
-        verbose_name_plural = "1.2 Товары"
+        verbose_name_plural = "(1.2) Товары"
         ordering = ['name',]
 
     def __str__(self):
@@ -86,7 +86,7 @@ class ProductsTableModel(models.Model):
 
     class Meta:
         verbose_name = "XLS Таблица товаров"
-        verbose_name_plural = "1.3 XLS Таблицы товаров"
+        verbose_name_plural = "(1.3) XLS Таблицы товаров"
 
     def __str__(self):
         return f'{ self.shop }, Выгружен: { self.created_date }'
@@ -141,7 +141,7 @@ class CategoryModel(MPTTModel):
 
     class Meta:
         verbose_name = "Категория"
-        verbose_name_plural = "1.4 Категории"
+        verbose_name_plural = "(1.4) Категории"
         
     class MPTTMeta:
         order_insertion_by = ['name',]
@@ -167,7 +167,7 @@ class ProductCardModel(models.Model):
 
     class Meta:
         verbose_name = "Карточка товара"
-        verbose_name_plural = "1.5 Карточки товаров"
+        verbose_name_plural = "(1.5) Карточки товаров"
         ordering = ['name',]
 
     def __str__(self):
