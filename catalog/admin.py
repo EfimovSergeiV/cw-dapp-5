@@ -26,6 +26,7 @@ class ShopAdmin(admin.ModelAdmin):
         ('', {'fields': (('uuid',),('city',),('adress',),('geo',),)}),
     )
 
+
 # Переопределяем ширину поля ввода для поля name
 class ProductFormsAdmin(ModelForm):
     name = CharField(label='Название', widget=TextInput(attrs={'style': 'width: 100%;'}))
@@ -56,7 +57,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     list_display = ( 'name', 'get_max_price' )
     search_fields = ( 'name', )
-    readonly_fields = ('uuid',)
+    readonly_fields = ('uuid', 'created_date', 'latest_update',)
 
     list_filter = (ShopFilter,)
     inlines = [
@@ -64,12 +65,13 @@ class ProductAdmin(admin.ModelAdmin):
     ]
     fieldsets = (
         ('', {'fields': (('uuid',),('name',),)}),
+        ('', {'fields': (('created_date', 'latest_update', ), ('is_activated',),)}),
     )
 
     def get_queryset(self, request):
         # Переопределяем queryset для добавления аннотации с максимальной стоимостью
         qs = super().get_queryset(request)
-        return qs.annotate(min_price=Min('product_uuid__price'),max_price=Max('product_uuid__price'))
+        return qs.annotate(min_price=Min('product_uuid__price'), max_price=Max('product_uuid__price'))
 
     def get_max_price(self, obj):
         # Возвращаем максимальную стоимость из аннотации
@@ -77,7 +79,6 @@ class ProductAdmin(admin.ModelAdmin):
         return result
 
     get_max_price.short_description = 'Стоимость'
-
 
 
 # Переопределяем ширину поля ввода для поля name
@@ -114,21 +115,21 @@ class ProductCardAdmin(admin.ModelAdmin):
     form = ProductCardFormsAdmin
 
     def show_img(self, obj):
-        url_img = obj.image if obj.image else 'img/c/preview/noimage.webp'
-        return mark_safe('<img style="margin-right:-10vh; background-color: white; padding: 15px; border-radius: 5px;" src="/files/%s" alt="Нет изображения" width="120" height="auto" />' % (url_img))
-    show_img.short_description = 'Изображение'
+        url_img = obj.preview if obj.preview else 'img/c/preview/noimage.webp'
+        return mark_safe('<img style="background-color: white; border-radius: 5px;" src="/files/%s" alt="Нет изображения" width="120" height="auto" />' % (url_img))
+    show_img.short_description = 'Превью'
     
-    list_display = ('id', 'name',)
+    list_display = ('id', 'name', 'is_activated', )
     list_display_links = ('id', 'name',)
-    readonly_fields = ('id', 'show_img',)
+    list_editable = ('is_activated',)
+    readonly_fields = ('id', 'show_img', 'created_date', 'latest_update',)
     inlines = [
         ProductImagesAdmin,
     ]
 
     fieldsets = (
-        ('', {'fields': ((), ('name',), ('keywords',),)}),
+        ('', {'fields': (('created_date', 'latest_update', ), ('is_activated',), ('name',), ('keywords',),)}),
         ('', {'fields': (('id', 'price', 'category',),)}),
-        ('', {'fields': ((),)}),
         ('', {'fields': (('show_img', 'preview',),('description'))}),
     )
 

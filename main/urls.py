@@ -26,3 +26,8 @@ urlpatterns = [
     
     # path('c/', include('catalog.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+admin.site.site_header = 'Главный сварщик'
+admin.site.index_title = 'Интернет магазин Главный сварщик'
+admin.site.site_title = 'Главный сварщик'

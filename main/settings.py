@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'catalog.apps.CatalogConfig',
+    'content.apps.ContentConfig',
     'mptt',
     'django_ckeditor_5',
 ]

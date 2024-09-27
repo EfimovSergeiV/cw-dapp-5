@@ -1,13 +1,14 @@
 import uuid
 from django.db import models
 from django.utils import timezone
+from main.models import AbstractStatusModel
 from django_resized import ResizedImageField
 from mptt.models import MPTTModel, TreeForeignKey
 from django_ckeditor_5.fields import CKEditor5Field
 
 
 
-class ShopModel(models.Model):
+class ShopModel(AbstractStatusModel):
     """ Магазины """
 
     uuid = models.UUIDField(verbose_name="Идентификатор", primary_key=True, default=uuid.uuid4, unique=True, editable=False)
@@ -39,7 +40,7 @@ class ShopModel(models.Model):
         return f'{self.city}, {self.adress}'
 
 
-class ProductModel(models.Model):
+class ProductModel(AbstractStatusModel):
     """
         Товары каталога, которые есть в наличии.
         Заносятся при парсинге
@@ -56,7 +57,7 @@ class ProductModel(models.Model):
         return self.name
 
 
-class StockModel(models.Model):
+class StockModel(AbstractStatusModel):
     """ Наличие, остаток товаров и стоимость """
    
     shop = models.ForeignKey(ShopModel, verbose_name="Магазин", related_name="shop_uuid", on_delete=models.CASCADE)
@@ -64,7 +65,6 @@ class StockModel(models.Model):
 
     price = models.PositiveIntegerField(verbose_name="Стоимость", null=True, blank=True)
     quantity = models.PositiveIntegerField(verbose_name="Количество", null=True, blank=True)
-    latest_update = models.DateTimeField(verbose_name="Последнее обновление", auto_now=True)
 
     class Meta:
         verbose_name = "Остаток товара"
@@ -136,6 +136,7 @@ class CategoryModel(MPTTModel):
     )
     name = models.CharField(verbose_name="Название", max_length=100)
     parent = TreeForeignKey('self', verbose_name="Вложенность", on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    is_activated = models.BooleanField(default=True, verbose_name="Активирован")
     visible = models.BooleanField(verbose_name="Отображать в категориях", default=True)
     related = models.ManyToManyField('self', verbose_name='Связанные категории', blank=True)
 
@@ -150,7 +151,7 @@ class CategoryModel(MPTTModel):
         return str(self.id) + '. ' + self.name
 
 
-class ProductCardModel(models.Model):
+class ProductCardModel(AbstractStatusModel):
     """ Карточка товара """
 
     name = models.CharField(verbose_name="Название", max_length=100)
